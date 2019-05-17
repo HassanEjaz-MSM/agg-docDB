@@ -1,6 +1,6 @@
 pipeline {
 
-  agent kops-slave
+  agent 'kops-slave'
 
   environment {
     SVC_ACCOUNT_KEY = credentials('terraform-auth')
