@@ -1,116 +1,117 @@
 provider "aws" {
   region = "${var.aws_region}"
+
 }
 
 #---------VPC--------#
 
-resource "aws_vpc" "and_digital" {
+resource "aws_vpc" "msmg" {
   cidr_block = "${var.vpc_cidr}"
 
   tags {
-    Name = "and_digital"
+    Name = "msmg"
   }
 }
 
 #--------Internet Gateway---------#
 
-resource "aws_internet_gateway" "and_digital_gateway" {
-  vpc_id = "${aws_vpc.and_digital.id}"
+resource "aws_internet_gateway" "msmg_gateway" {
+  vpc_id = "${aws_vpc.msmg.id}"
 
   tags {
-    Name = "and_digital_gateway"
+    Name = "msmg_gateway"
   }
 }
 
 #-------Subnets--------#
 
-resource "aws_subnet" "and_digital_pub1_subnet" {
-  vpc_id                  = "${aws_vpc.and_digital.id}"
+resource "aws_subnet" "msmg_pub1_subnet" {
+  vpc_id                  = "${aws_vpc.msmg.id}"
   cidr_block              = "${var.cidrs["public1"]}"
   map_public_ip_on_launch = true
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
 
   tags {
-    Name = "and_digital_public1"
+    Name = "msmg_public1"
   }
 }
 
-resource "aws_subnet" "and_digital_pub2_subnet" {
-  vpc_id                  = "${aws_vpc.and_digital.id}"
+resource "aws_subnet" "msmg_pub2_subnet" {
+  vpc_id                  = "${aws_vpc.msmg.id}"
   cidr_block              = "${var.cidrs["public2"]}"
   map_public_ip_on_launch = true
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
 
   tags {
-    Name = "and_digital_public2"
+    Name = "msmg_public2"
   }
 }
 
-resource "aws_subnet" "and_digital_priv1_subnet" {
-  vpc_id                  = "${aws_vpc.and_digital.id}"
+resource "aws_subnet" "msmg_priv1_subnet" {
+  vpc_id                  = "${aws_vpc.msmg.id}"
   cidr_block              = "${var.cidrs["private1"]}"
   map_public_ip_on_launch = false
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
 
   tags {
-    Name = "and_digital_private1"
+    Name = "msmg_private1"
   }
 }
 
-resource "aws_subnet" "and_digital_priv2_subnet" {
-  vpc_id                  = "${aws_vpc.and_digital.id}"
+resource "aws_subnet" "msmg_priv2_subnet" {
+  vpc_id                  = "${aws_vpc.msmg.id}"
   cidr_block              = "${var.cidrs["private2"]}"
   map_public_ip_on_launch = false
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
 
   tags {
-    Name = "and_digital_private2"
+    Name = "msmg_private2"
   }
 }
 
 #---------Route Tables-----------#
 
-resource "aws_route_table" "and_digital_public_rt" {
-  vpc_id = "${aws_vpc.and_digital.id}"
+resource "aws_route_table" "msmg_public_rt" {
+  vpc_id = "${aws_vpc.msmg.id}"
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.and_digital_gateway.id}"
+    gateway_id = "${aws_internet_gateway.msmg_gateway.id}"
   }
 
   tags {
-    Name = "and_digital_public_rt"
+    Name = "msmg_public_rt"
   }
 }
 
-resource "aws_default_route_table" "and_digital_priv_rt" {
-  default_route_table_id = "${aws_vpc.and_digital.default_route_table_id}"
+resource "aws_default_route_table" "msmg_priv_rt" {
+  default_route_table_id = "${aws_vpc.msmg.default_route_table_id}"
 
   tags {
-    Name = "and_digital_priv_rt"
+    Name = "msmg_priv_rt"
   }
 }
 
 #--------Subnet Associations-----------#
 
-resource "aws_route_table_association" "and_digital_pub1_assoc" {
-  subnet_id      = "${aws_subnet.and_digital_pub1_subnet.id}"
-  route_table_id = "${aws_route_table.and_digital_public_rt.id}"
+resource "aws_route_table_association" "msmg_pub1_assoc" {
+  subnet_id      = "${aws_subnet.msmg_pub1_subnet.id}"
+  route_table_id = "${aws_route_table.msmg_public_rt.id}"
 }
 
-resource "aws_route_table_association" "and_digital_pub2_assoc" {
-  subnet_id      = "${aws_subnet.and_digital_pub2_subnet.id}"
-  route_table_id = "${aws_route_table.and_digital_public_rt.id}"
+resource "aws_route_table_association" "msmg_pub2_assoc" {
+  subnet_id      = "${aws_subnet.msmg_pub2_subnet.id}"
+  route_table_id = "${aws_route_table.msmg_public_rt.id}"
 }
 
-resource "aws_route_table_association" "and_digital_priv1_assoc" {
-  subnet_id      = "${aws_subnet.and_digital_priv1_subnet.id}"
-  route_table_id = "${aws_default_route_table.and_digital_priv_rt.id}"
+resource "aws_route_table_association" "msmg_priv1_assoc" {
+  subnet_id      = "${aws_subnet.msmg_priv1_subnet.id}"
+  route_table_id = "${aws_default_route_table.msmg_priv_rt.id}"
 }
 
-resource "aws_route_table_association" "and_digital_priv2_assoc" {
-  subnet_id      = "${aws_subnet.and_digital_priv2_subnet.id}"
-  route_table_id = "${aws_default_route_table.and_digital_priv_rt.id}"
+resource "aws_route_table_association" "msmg_priv2_assoc" {
+  subnet_id      = "${aws_subnet.msmg_priv2_subnet.id}"
+  route_table_id = "${aws_default_route_table.msmg_priv_rt.id}"
 }
 
 #-----------Security Groups------------#
@@ -118,7 +119,7 @@ resource "aws_route_table_association" "and_digital_priv2_assoc" {
 resource "aws_security_group" "bastion_sg" {
   name        = "bastion_sg"
   description = "Used for accessing the dev instances"
-  vpc_id      = "${aws_vpc.and_digital.id}"
+  vpc_id      = "${aws_vpc.msmg.id}"
 
   #SSH
   ingress {
@@ -142,7 +143,7 @@ resource "aws_security_group" "bastion_sg" {
 resource "aws_security_group" "pub_sg" {
   name        = "pub_sg"
   description = "Used for public and private instances for load balancer access"
-  vpc_id      = "${aws_vpc.and_digital.id}"
+  vpc_id      = "${aws_vpc.msmg.id}"
 
   #HTTP
 
@@ -169,7 +170,7 @@ resource "aws_security_group" "pub_sg" {
 resource "aws_security_group" "priv_sg" {
   name        = "priv_sg"
   description = "Used to access private instances"
-  vpc_id      = "${aws_vpc.and_digital.id}"
+  vpc_id      = "${aws_vpc.msmg.id}"
 
   ingress {
     from_port   = 22
@@ -205,7 +206,7 @@ resource "aws_instance" "bastion_server" {
     instance_type               = "t2.micro"
     //key_name                    = "${var.key_name}"
     vpc_security_group_ids      = ["${aws_security_group.bastion_sg.id}", "${aws_security_group.pub_sg.id}"]
-    subnet_id                   = "${aws_subnet.and_digital_pub1_subnet.id}"
+    subnet_id                   = "${aws_subnet.msmg_pub1_subnet.id}"
     user_data = <<USER_DATA
       #!/bin/bash
       yum update
@@ -220,7 +221,7 @@ resource "aws_alb" "alb" {
   name                       = "alb"
   security_groups            = ["${aws_security_group.pub_sg.id}"]
   load_balancer_type         = "application"
-  subnets                    = ["${aws_subnet.and_digital_pub1_subnet.id}", "${aws_subnet.and_digital_pub2_subnet.id}"]
+  subnets                    = ["${aws_subnet.msmg_pub1_subnet.id}", "${aws_subnet.msmg_pub2_subnet.id}"]
   enable_deletion_protection = true
 
   tags = {
@@ -230,11 +231,11 @@ resource "aws_alb" "alb" {
 
 #---------Target Group---------------#
 
-resource "aws_alb_target_group" "and_digital_tg" {
+resource "aws_alb_target_group" "msmg_tg" {
   name     = "tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = "${aws_vpc.and_digital.id}"
+  vpc_id   = "${aws_vpc.msmg.id}"
 }
 
 resource "aws_alb_listener" "alb" {
@@ -243,7 +244,7 @@ resource "aws_alb_listener" "alb" {
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.and_digital_tg.arn}"
+    target_group_arn = "${aws_alb_target_group.msmg_tg.arn}"
     type             = "forward"
   }
 }
@@ -254,7 +255,7 @@ resource "aws_alb_listener_rule" "alb_route_path" {
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_alb_target_group.and_digital_tg.arn}"
+    target_group_arn = "${aws_alb_target_group.msmg_tg.arn}"
   }
 
   condition {
@@ -276,12 +277,12 @@ resource "aws_autoscaling_group" "asg" {
   max_size = 5
 
   health_check_type   = "ELB"
-  target_group_arns   = ["${aws_alb_target_group.and_digital_tg.arn}"]
-  vpc_zone_identifier = ["${aws_subnet.and_digital_priv1_subnet.id}", "${aws_subnet.and_digital_priv2_subnet.id }", "${aws_subnet.and_digital_pub1_subnet.id}", "${aws_subnet.and_digital_pub2_subnet.id }"]
+  target_group_arns   = ["${aws_alb_target_group.msmg_tg.arn}"]
+  vpc_zone_identifier = ["${aws_subnet.msmg_priv1_subnet.id}", "${aws_subnet.msmg_priv2_subnet.id }", "${aws_subnet.msmg_pub1_subnet.id}", "${aws_subnet.msmg_pub2_subnet.id }"]
 
   tag {
     key                 = "Name"
-    value               = "ASG-And-Digital"
+    value               = "ASG-msmg"
     propagate_at_launch = true
   }
 }
